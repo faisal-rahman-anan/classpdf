@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Chapter-wise PDFs</title>
+<meta name="description" content="Subject-wise and chapter-wise class PDFs. Tap Open PDF to read.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,800&family=Hind+Siliguri:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#F6F4EE;--ink:#1B2A41;--pen:#C8421B;--rule:#DDD6C4;--white:#fff;--soft:#5b6b82;
+--head:"Bricolage Grotesque","Hind Siliguri",Georgia,serif;--body:"Hind Siliguri",system-ui,sans-serif;--gap:clamp(1rem,5vw,5rem)}
+*{box-sizing:border-box;margin:0}
+body{min-height:100vh;background:var(--bg);color:var(--ink);font:400 clamp(16px,.9vw + 12px,20px)/1.55 var(--body)}
+:focus-visible{outline:3px solid var(--pen);outline-offset:3px}
+header{padding:2.5rem var(--gap) 1.5rem}
+h1{font:800 clamp(2.2rem,6vw,4rem)/1.05 var(--head);letter-spacing:-.03em}
+header p{margin-top:.7rem;max-width:50ch;color:var(--soft)}
+.bar{position:sticky;top:0;z-index:5;background:var(--bg);border-bottom:2px solid var(--rule);padding:.8rem var(--gap);display:flex;flex-wrap:wrap;gap:.7rem 1.2rem;align-items:center;justify-content:space-between}
+#tabs{display:flex;gap:.5rem;flex-wrap:wrap}
+#tabs button{font:600 1rem var(--body);padding:.55rem 1.1rem;border:2px solid var(--ink);border-radius:999px;background:transparent;color:var(--ink);cursor:pointer}
+#tabs button[aria-pressed="true"]{background:var(--ink);color:var(--white)}
+#q{font:400 1rem var(--body);padding:.55rem .9rem;border:2px solid var(--rule);border-radius:8px;background:var(--white);min-width:200px;flex:1;max-width:340px}
+main{padding:1rem var(--gap) 4rem;max-width:1100px}
+.group{margin-top:2rem}
+.group h2{font:800 1.5rem/1.1 var(--head);margin-bottom:.8rem;display:flex;align-items:center;gap:.7rem}
+.group h2::before{content:"";width:12px;height:26px;background:var(--pen);border-radius:3px}
+table{width:100%;border-collapse:collapse;background:var(--white);border-radius:10px;overflow:hidden;border:2px solid var(--rule)}
+th{text-align:left;font:800 .75rem/1 var(--head);letter-spacing:.08em;text-transform:uppercase;color:var(--soft);padding:.8rem 1rem;background:#FBFAF6;border-bottom:2px solid var(--rule)}
+td{padding:.75rem 1rem;border-bottom:1px solid var(--rule);vertical-align:middle;overflow-wrap:anywhere}
+tr:last-child td{border-bottom:0}
+td.no{width:3.2rem;color:var(--soft);font-weight:600}
+td.act{width:1%;white-space:nowrap;text-align:right}
+a.open{display:inline-block;text-decoration:none;font-weight:600;background:var(--pen);color:var(--white);padding:.4rem .9rem;border-radius:6px}
+a.open:hover{background:var(--ink)}
+.empty{margin-top:2rem;color:var(--soft)}
+</style>
+</head>
+<body>
+<header>
+  <h1>Chapter-wise PDFs</h1>
+  <p>Pick a subject, find your chapter, and tap Open PDF.</p>
+</header>
+<div class="bar">
+  <div id="tabs" role="group" aria-label="Subjects"></div>
+  <input id="q" type="search" placeholder="Search chapter" aria-label="Search chapter">
+</div>
+<main id="out"></main>
+
+<script>
+/* ===== এই তালিকাটাই আপনি বদলাবেন =====
+   subject  = বিষয়ের নাম (Physics, Chemistry ...)
+   title    = গ্রুপের নাম (যেমন Group A, বা যেকোনো নাম)
+   name     = অধ্যায়ের নাম
+   file     = PDF ফাইলের ঠিকানা (pdfs ফোল্ডারের ফাইল, অথবা পুরো লিংক https://...) */
+const subjects = [
+  { name: "Physics", groups: [
+    { title: "Group A", chapters: [
+      { name: "Chapter 1", file: "pdfs/sample.pdf" },
+      { name: "Chapter 2", file: "pdfs/sample.pdf" },
+      { name: "Chapter 3", file: "pdfs/sample.pdf" } ] },
+    { title: "Group B", chapters: [
+      { name: "Chapter 4", file: "pdfs/sample.pdf" },
+      { name: "Chapter 5", file: "pdfs/sample.pdf" } ] } ] },
+  { name: "Chemistry", groups: [
+    { title: "Group A", chapters: [
+      { name: "Chapter 1", file: "pdfs/sample.pdf" },
+      { name: "Chapter 2", file: "pdfs/sample.pdf" } ] },
+    { title: "Group B", chapters: [
+      { name: "Chapter 3", file: "pdfs/sample.pdf" } ] } ] },
+  { name: "Mathematics", groups: [
+    { title: "Group A", chapters: [
+      { name: "Chapter 1", file: "pdfs/sample.pdf" },
+      { name: "Chapter 2", file: "pdfs/sample.pdf" } ] },
+    { title: "Group B", chapters: [
+      { name: "Chapter 3", file: "pdfs/sample.pdf" },
+      { name: "Chapter 4", file: "pdfs/sample.pdf" } ] } ] }
+];
+/* ===== এর নিচে হাত দেওয়ার দরকার নেই ===== */
+
+const tabs = document.getElementById("tabs");
+const out = document.getElementById("out");
+const q = document.getElementById("q");
+let cur = 0;
+
+function el(tag, cls, text) {
+  const e = document.createElement(tag);
+  if (cls) e.className = cls;
+  if (text !== undefined) e.textContent = text;
+  return e;
+}
+
+function render() {
+  tabs.innerHTML = "";
+  subjects.forEach((s, i) => {
+    const b = el("button", "", s.name);
+    b.type = "button";
+    b.setAttribute("aria-pressed", i === cur);
+    b.onclick = () => { cur = i; render(); };
+    tabs.appendChild(b);
+  });
+
+  out.innerHTML = "";
+  const term = q.value.trim().toLowerCase();
+  let shown = 0;
+
+  subjects[cur].groups.forEach(g => {
+    const rows = [];
+    g.chapters.forEach((c, idx) => {
+      if (c.name.toLowerCase().includes(term)) rows.push([idx + 1, c]);
+    });
+    if (!rows.length) return;
+    shown += rows.length;
+
+    const sec = el("section", "group");
+    sec.appendChild(el("h2", "", g.title));
+    const t = el("table");
+    const head = el("tr");
+    ["No.", "Chapter", "PDF"].forEach(h => head.appendChild(el("th", "", h)));
+    t.appendChild(head);
+
+    rows.forEach(([n, c]) => {
+      const tr = el("tr");
+      tr.appendChild(el("td", "no", n));
+      tr.appendChild(el("td", "", c.name));
+      const td = el("td", "act");
+      const a = el("a", "open", "Open PDF");
+      a.href = c.file; a.target = "_blank"; a.rel = "noopener";
+      td.appendChild(a); tr.appendChild(td);
+      t.appendChild(tr);
+    });
+    sec.appendChild(t);
+    out.appendChild(sec);
+  });
+
+  if (!shown) out.appendChild(el("p", "empty", "No chapter found."));
+}
+
+q.addEventListener("input", render);
+render();
+</script>
+</body>
+</html>
